@@ -58,7 +58,17 @@
 
 Тесты: searchByTitle, sortBy.
 
-### 3. Аудит кода
+### 3.  Интеграция в `main.ts`
+
+Заменить функциональный каталог из Практик 2.1–2.2 на `new BookCatalog(...)`:
+
+- `addBook(catalog, b)` → `catalog.addBook(b)`
+- `removeBook(catalog, id)` → `catalog.removeBook(id)`
+- `Object.values(catalog)` → `catalog.getBooks()`
+- фильтры — `applyFilters(catalog.getBooks(), ...)`
+- поиск — `catalog.searchByTitle(...)`, сортировка — `catalog.sortBy(...)`
+
+### 4. Аудит кода
 
 В проекте есть функции, которые написаны, экспортируются, но нигде не используются в `main.ts`
 
@@ -88,16 +98,6 @@ JSDoc — это стандарт оформления комментариев 
 статический `createFromFormData(FormData): BookClass`.
 
 Логику брать из `formatBook` и `createBookFromForm`.
-
-### Интеграция в `main.ts`
-
-Заменить функциональный каталог из Практик 2.1–2.2 на `new BookCatalog(...)`:
-
-- `addBook(catalog, b)` → `catalog.addBook(b)`
-- `removeBook(catalog, id)` → `catalog.removeBook(id)`
-- `Object.values(catalog)` → `catalog.getBooks()`
-- фильтры — `applyFilters(catalog.getBooks(), ...)`
-- поиск — `catalog.searchByTitle(...)`, сортировка — `catalog.sortBy(...)`
 
 **Ловушка десериализации.** `JSON.stringify` сохранит данные, но `JSON.parse`
 вернёт простой объект без методов. После загрузки из localStorage:
