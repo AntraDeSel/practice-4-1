@@ -16,7 +16,7 @@ let catalog = new BookCatalog('main', [
 
 let wishlist = new Wishlist();
 
-// Загрузка из localStorage
+// Загрузка из localStorage (в практике 4-1 переедет в mock-api.ts)
 const savedCatalog = localStorage.getItem('catalog');
 if (savedCatalog) {
   const parsed = JSON.parse(savedCatalog);
@@ -29,7 +29,7 @@ if (savedWishlist) {
 }
 
 // ============================================================
-// СОХРАНЕНИЕ
+// СОХРАНЕНИЕ (в практике 4-1 переедет в mock-api.ts)
 // ============================================================
 function saveCatalog() {
   localStorage.setItem('catalog', JSON.stringify({
@@ -56,7 +56,7 @@ const searchInput = document.querySelector('#searchInput') as HTMLInputElement;
 const sortBySelect = document.querySelector('#sortBy') as HTMLSelectElement;
 
 // ============================================================
-// СОЗДАНИЕ КАРТОЧКИ (вынесено, чтобы не дублировать код)
+// СОЗДАНИЕ КАРТОЧКИ
 // ============================================================
 function createBookCard(book: Book): HTMLDivElement {
   const card = document.createElement('div');
@@ -82,10 +82,9 @@ function createBookCard(book: Book): HTMLDivElement {
   });
   card.append(deleteBtn);
 
-  // Кнопка «Избранное»
+  // Кнопка «Избранное» 
   const favBtn = document.createElement('button');
   favBtn.textContent = wishlist.has(book.id) ? '❤️ В избранном' : '🤍 В избранное';
-  favBtn.className = 'fav-btn';
   favBtn.addEventListener('click', () => {
     wishlist.toggle(book.id);
     saveWishlist();

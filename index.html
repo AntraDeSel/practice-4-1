@@ -6,7 +6,7 @@
 </head>
 <body>
   <h1>Каталог книг</h1>
-  
+
   <!-- Форма добавления -->
   <form id="bookForm">
     <input name="title" placeholder="Название" required>
@@ -16,24 +16,30 @@
     <button type="submit">Добавить</button>
   </form>
   <div id="errorMessage"></div>
-  <!-- Фильтры -->
-  <div id="filters">
+
+  <!-- Блок фильтров -->
+  <div class="filters" id="filters">
     <input id="filterAuthor" placeholder="Фильтр по автору">
     <input id="filterYear" type="number" placeholder="Минимальный год">
     <button id="applyFilters">Применить</button>
   </div>
-  <div class="filters">
+
+  <div class="filters" id="searchBlock">
     <input id="searchInput" placeholder="Поиск по названию...">
-  <select id="sortBy">
-    <option value="year">По году (новые)</option>
-    <option value="rating">По рейтингу</option>
-  </select>
+    <select id="sortBy">
+      <option value="year">По году (новые)</option>
+      <option value="rating">По рейтингу</option>
+    </select>
   </div>
-  <!-- Список книг -->
-  <div id="bookList"></div>
+
+  <!-- Основной список -->
+  <h2>Все книги</h2>
+  <div id="bookList" class="book-grid"></div>
+
+  <!-- Избранное -->
   <h2>Моё избранное</h2>
-  <div id="wishlistContainer" class="book-list"></div> 
-  
+  <div id="wishlistContainer" class="book-grid"></div>
+
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

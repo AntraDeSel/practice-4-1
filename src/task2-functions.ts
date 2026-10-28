@@ -1,10 +1,18 @@
-// Задание 2: Функции работы с каталогом
-// Управление данными без мутации исходных объектов (иммутабельность)
+/**
+ * Функции работы с каталогом в функциональном стиле.
+ *
+ * @deprecated весь модуль заменён классом `BookCatalog` (практика 3.1).
+ *             Сохранён для ознакомления и сравнения подходов:
+ *             функциональный (этот файл) vs ООП (task6-classes.ts).
+ *             В будущем может быть удалён или перемещён в examples/.
+ */
 
-//импортирт типов Book и Catalog из файла task1-types.ts
 import type { Book, Catalog } from './task1-types';
 
-// TODO 1: Добавьте книгу в каталог
+/**
+ * Добавляет книгу в каталог иммутабельно (возвращает новый объект).
+ * @deprecated используйте `BookCatalog.addBook()`
+ */
 export function addBook(catalog: Catalog, book: Book): Catalog {
   return {
     ...catalog,
@@ -12,14 +20,19 @@ export function addBook(catalog: Catalog, book: Book): Catalog {
   };
 }
 
-// удаление книги из каталога по id
-
+/**
+ * Удаляет книгу из каталога по id.
+ * @deprecated используйте `BookCatalog.removeBook()`
+ */
 export function removeBook(catalog: Catalog, id: string): Catalog {
   const { [id]: _, ...rest } = catalog;
   return rest;
 }
 
-// поиск книгу в каталоге по id
+/**
+ * Возвращает книгу по id или undefined.
+ * @deprecated логика перенесена в методы класса BookCatalog
+ */
 export function getBook(catalog: Catalog, id: string): Book | undefined {
   return catalog[id];
 }

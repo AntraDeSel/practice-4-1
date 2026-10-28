@@ -16,7 +16,16 @@ export const filterByMinYear = (year: number): BookFilter => {
   return (book: Book) => book.year !== undefined && book.year >= year;
 };
 
-// фильтр по минимальному рейтингу
+/**
+ * Фильтр по минимальному рейтингу.
+ *
+ * @param rating - пороговое значение рейтинга
+ * @returns предикат, проверяющий book.rating >= rating
+ *
+ * @deprecated пока не используется в UI (нет поля ввода минимального
+ *             рейтинга в фильтре). Задел на фичу «Расширенные фильтры»:
+ *             добавить `<input id="filterRating">` в блок .filters.
+ */
 export const filterByMinRating = (rating: number): BookFilter => {
   return (book: Book) => book.rating !== undefined && book.rating >= rating;
 };

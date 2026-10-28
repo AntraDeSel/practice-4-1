@@ -10,6 +10,7 @@ body {
 }
 
 h1 { margin-bottom: 20px; }
+h2 { margin: 24px 0 12px; }
 
 form, .filters {
   background: white;
@@ -37,7 +38,17 @@ button {
 
 button:hover { background: #1d4ed8; }
 
-#bookList {
+/* Унификация кнопок внутри карточки: одинаковая геометрия,
+   чтобы длина подписи или наличие эмодзи не ломали верстку */
+.book-card button {
+  line-height: 1.2;
+  min-width: 130px;
+  margin-right: 6px;
+  margin-top: 8px;
+}
+
+/* Сетка карточек — применяется и к основному списку, и к избранному */
+.book-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 16px;
