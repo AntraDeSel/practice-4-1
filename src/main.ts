@@ -5,24 +5,24 @@ import { createBookFromForm } from "./task4-integration";
 import { filterByTitle, sortBooks } from './task5-utils';
 import { BookCatalog } from './task6-classes';
 import { Wishlist } from './task7-wishlist';
-import { fetchBooks, saveBooks } from './mock-api';
-
-type AsyncState<T> =
-  | { status: 'idle' }
-  | { status: 'loading' }
-  | { status: 'success'; data: T }
-  | { status: 'error'; message: string };
-
-let state: AsyncState<Book[]> = { status: 'loading' };
-let errorMessage: string = '';
 
 // ============================================================
 // ИСХОДНОЕ СОСТОЯНИЕ
 // ============================================================
-let catalog = new BookCatalog('main', []);
+let catalog = new BookCatalog('main', [
+  { id: '1', title: 'TypeScript Guide', authors: ['John Doe'], year: 2024 },
+  { id: '2', title: 'JavaScript Basics', authors: ['Jane Smith'], year: 2022 },
+]);
+
 let wishlist = new Wishlist();
 
 // Загрузка из localStorage (в практике 4-1 переедет в mock-api.ts)
+const savedCatalog = localStorage.getItem('catalog');
+if (savedCatalog) {
+  const parsed = JSON.parse(savedCatalog);
+  catalog = new BookCatalog(parsed.id, parsed.books);
+}
+
 const savedWishlist = localStorage.getItem('wishlist');
 if (savedWishlist) {
   wishlist = new Wishlist(JSON.parse(savedWishlist));
@@ -31,6 +31,13 @@ if (savedWishlist) {
 // ============================================================
 // СОХРАНЕНИЕ (в практике 4-1 переедет в mock-api.ts)
 // ============================================================
+function saveCatalog() {
+  localStorage.setItem('catalog', JSON.stringify({
+    id: catalog.id,
+    books: catalog.getBooks()
+  }));
+}
+
 function saveWishlist() {
   localStorage.setItem('wishlist', JSON.stringify(wishlist.getFavoriteIds()));
 }
@@ -44,7 +51,7 @@ const form = document.querySelector('#bookForm') as HTMLFormElement;
 const filterBtn = document.querySelector('#applyFilters') as HTMLButtonElement;
 const authorInput = document.querySelector('#filterAuthor') as HTMLInputElement;
 const yearInput = document.querySelector('#filterYear') as HTMLInputElement;
-const errorMessageEl = document.querySelector('#errorMessage') as HTMLDivElement;
+const errorMessage = document.querySelector('#errorMessage') as HTMLDivElement;
 const searchInput = document.querySelector('#searchInput') as HTMLInputElement;
 const sortBySelect = document.querySelector('#sortBy') as HTMLSelectElement;
 
@@ -53,7 +60,7 @@ const sortBySelect = document.querySelector('#sortBy') as HTMLSelectElement;
 // ============================================================
 function createBookCard(book: Book): HTMLDivElement {
   const card = document.createElement('div');
-  card.className = 'book-card fade-in';
+  card.className = 'book-card';
 
   const titleEl = document.createElement('h3');
   titleEl.textContent = `${book.title} — ${book.authors.join(', ')}${book.year ? `, ${book.year}` : ''}`;
@@ -68,30 +75,20 @@ function createBookCard(book: Book): HTMLDivElement {
   // Кнопка «Удалить»
   const deleteBtn = document.createElement('button');
   deleteBtn.textContent = 'Удалить';
-  deleteBtn.addEventListener('click', async () => {
-    if (state.status !== 'success') return;
-    
-    const newBooks = state.data.filter(b => b.id !== book.id);
-    
-    try {
-      await saveBooks(newBooks);
-      state = { status: 'success', data: newBooks };
-      render();
-    } catch (error) {
-      errorMessage = error instanceof Error ? error.message : 'Ошибка удаления';
-      render();
-      setTimeout(() => { errorMessage = ''; render(); }, 3000);
-    }
+  deleteBtn.addEventListener('click', () => {
+    catalog.removeBook(book.id);
+    saveCatalog();
+    updateView();
   });
   card.append(deleteBtn);
 
-  // Кнопка «Избранное»
+  // Кнопка «Избранное» 
   const favBtn = document.createElement('button');
   favBtn.textContent = wishlist.has(book.id) ? '❤️ В избранном' : '🤍 В избранное';
   favBtn.addEventListener('click', () => {
     wishlist.toggle(book.id);
     saveWishlist();
-    render();
+    updateView();
   });
   card.append(favBtn);
 
@@ -129,105 +126,46 @@ function renderWishlist() {
 }
 
 // Единая функция обновления вида
-function render() {
-  errorMessageEl.textContent = errorMessage;
+function updateView() {
+  const filters: ((book: Book) => boolean)[] = [];
+  if (authorInput.value.trim()) filters.push(filterByAuthor(authorInput.value.trim()));
+  if (yearInput.value) filters.push(filterByMinYear(parseInt(yearInput.value, 10)));
+  if (searchInput.value.trim()) filters.push(filterByTitle(searchInput.value.trim()));
 
-  switch (state.status) {
-    case 'idle':
-      bookList.textContent = 'Приложение готово к работе.';
-      break;
-      
-    case 'loading':
-      bookList.innerHTML = '<div style="padding: 20px; font-size: 18px; color: #2563eb;">⏳ Загрузка данных...</div>';
-      break;
-      
-    case 'success':
-      catalog = new BookCatalog('main', state.data);
-      
-      const filters: ((book: Book) => boolean)[] = [];
-      if (authorInput.value.trim()) filters.push(filterByAuthor(authorInput.value.trim()));
-      if (yearInput.value) filters.push(filterByMinYear(parseInt(yearInput.value, 10)));
-      if (searchInput.value.trim()) filters.push(filterByTitle(searchInput.value.trim()));
+  const allBooks = catalog.getBooks();
+  const filtered = applyFilters(allBooks, filters);
+  const sorted = sortBooks(filtered, sortBySelect.value as 'year' | 'rating');
 
-      const filtered = applyFilters(state.data, filters);
-      const sorted = sortBooks(filtered, sortBySelect.value as 'year' | 'rating');
-
-      renderBooks(sorted);
-      break;
-      
-    case 'error':
-      bookList.innerHTML = `
-        <div style="color: #991b1b; background: #fee2e2; padding: 20px; border-radius: 8px;">
-          <p style="margin-bottom: 10px; font-weight: bold;">Ошибка: ${state.message}</p>
-          <button id="retryBtn" style="background: #dc2626; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer;">
-            Повторить попытку
-          </button>
-        </div>
-      `;
-      document.getElementById('retryBtn')?.addEventListener('click', initApp);
-      break;
-  }
-  
+  renderBooks(sorted);
   renderWishlist();
 }
+
+// Первичная отрисовка
+updateView();
 
 // ============================================================
 // ОБРАБОТЧИК ФОРМЫ
 // ============================================================
-form.addEventListener('submit', async (e) => {
+form.addEventListener('submit', (e) => {
   e.preventDefault();
-  errorMessage = '';
-  render();
-
-  if (state.status !== 'success') return;
-
+  errorMessage.textContent = '';
   try {
     const formData = new FormData(form);
     const newBook = createBookFromForm(formData);
-    
-    const newBooksArray = [...state.data, newBook];
-    await saveBooks(newBooksArray);
-    
-    state = { status: 'success', data: newBooksArray };
+    catalog.addBook(newBook);
+    saveCatalog();
     form.reset();
-    render();
-    
+    updateView();
   } catch (error) {
-    errorMessage = error instanceof Error ? error.message : 'Неизвестная ошибка';
-    render();
-    
-    setTimeout(() => {
-      errorMessage = '';
-      render();
-    }, 3000);
+    if (error instanceof Error) {
+      errorMessage.textContent = error.message;
+    }
   }
 });
 
 // ============================================================
 // ФИЛЬТРЫ И СОРТИРОВКА
 // ============================================================
-filterBtn.addEventListener('click', render);
-searchInput.addEventListener('input', render);
-sortBySelect.addEventListener('change', render);
-
-// ============================================================
-// ИНИЦИАЛИЗАЦИЯ
-// ============================================================
-async function initApp() {
-  state = { status: 'loading' };
-  render();
-
-  try {
-    const books = await fetchBooks();
-    state = { status: 'success', data: books };
-  } catch (error) {
-    state = { 
-      status: 'error', 
-      message: error instanceof Error ? error.message : 'Неизвестная ошибка' 
-    };
-  }
-  
-  render();
-}
-
-initApp();
+filterBtn.addEventListener('click', updateView);
+searchInput.addEventListener('input', updateView);
+sortBySelect.addEventListener('change', updateView);

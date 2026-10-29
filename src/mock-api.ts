@@ -1,41 +1,33 @@
 // src/mock-api.ts
 import { Book } from './task1-types';
 
-/**
- * Имитация задержки сети.
- */
+// 1. Функция задержки
 export function delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-/**
- * Асинхронная загрузка книг. В 20% случаев выбрасывает ошибку.
- */
+// 2. Асинхронное получение книг
 export async function fetchBooks(): Promise<Book[]> {
-  await delay(800); // Ждем 800 мс
+  // Имитация загрузки по сети
+  await delay(800);
 
-  // 20% шанс ошибки
-    if (Math.random() < 0.2) {
+  if (Math.random() < 0.2) {
     throw new Error('Сбой сети. Не удалось загрузить книги.');
-    }
+  }
 
-  // Чтение из localStorage
-    const data = localStorage.getItem('catalog');
-    if (!data) return [];
+  const raw = localStorage.getItem('catalog');
+  if (!raw) return [];
 
-    try {
-    const parsed = JSON.parse(data);
-    // Поддерживаем как старый формат { id, books }, так и просто массив
+  try {
+    const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : (parsed.books || []);
-    } catch (e) {
+  } catch {
     return [];
-    }
+  }
 }
 
-/**
- * Асинхронное сохранение книг.
- */
+// 3. Асинхронное сохранение книг
 export async function saveBooks(books: Book[]): Promise<void> {
-  await delay(500); // Ждем 500 мс
-    localStorage.setItem('catalog', JSON.stringify({ id: 'main', books }));
+  await delay(500);
+  localStorage.setItem('catalog', JSON.stringify(books));
 }
